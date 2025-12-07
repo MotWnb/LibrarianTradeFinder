@@ -9,7 +9,6 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.tooltip.TooltipBackgroundRenderer;
 import net.minecraft.client.gui.widget.EntryListWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
@@ -45,36 +44,75 @@ public class EnchantmentEntry extends EntryListWidget.Entry<EnchantmentEntry> {
 
     }
 
+    public static void renderMultilineTooltip(DrawContext context, TextRenderer textRenderer, MultilineText text, int centerX, int yAbove, int yBelow, int screenHeight) {
+        if (text.count() > 0) {
+            int maxWidth = text.getMaxWidth();
+            int lineHeight = textRenderer.fontHeight + 1;
+            int height = text.count() * lineHeight - 1;
+
+            int belowY = yBelow + 12;
+            int aboveY = yAbove - height + 12;
+            int maxBelow = screenHeight - (belowY + height);
+            int minAbove = aboveY - height;
+            int y = belowY;
+            if (maxBelow < -8)
+                y = maxBelow > minAbove ? belowY : aboveY;
+
+            int x = Math.max(centerX - text.getMaxWidth() / 2 - 12, -6);
+
+            int drawX = x + 12;
+            int drawY = y - 12;
+
+            TooltipBackgroundRenderer.render(
+                    context,
+                    drawX,
+                    drawY,
+                    maxWidth,
+                    height,
+                    null
+            );
+
+            text.drawWithShadow(context, drawX, drawY, lineHeight, -1);
+
+        }
+    }
+
     @Override
     public void render(DrawContext context, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
-        MatrixStack matrices = context.getMatrices();
         this.x = x;
         this.y = y;
         this.entryWidth = entryWidth;
         this.entryHeight = entryHeight;
 
-        if(!maxPriceField.getText().isEmpty() && !maxPriceField.isActive() && (Integer.parseInt(maxPriceField.getText()) > 64 || Integer.parseInt(maxPriceField.getText()) < 5)) maxPriceField.setText("64");
-        if(!levelField.getText().isEmpty() && !levelField.isActive() && (Integer.parseInt(levelField.getText()) > enchantment.getMaxLevel() || Integer.parseInt(levelField.getText()) < 1)) levelField.setText(String.valueOf(enchantment.getMaxLevel()));
+        if (!maxPriceField.getText().isEmpty() && !maxPriceField.isActive() && (Integer.parseInt(maxPriceField.getText()) > 64 || Integer.parseInt(maxPriceField.getText()) < 5))
+            maxPriceField.setText("64");
+        if (!levelField.getText().isEmpty() && !levelField.isActive() && (Integer.parseInt(levelField.getText()) > enchantment.getMaxLevel() || Integer.parseInt(levelField.getText()) < 1))
+            levelField.setText(String.valueOf(enchantment.getMaxLevel()));
 
         enchantmentOption.setEnabled(enabled);
         enchantmentOption.setMaxPrice(!maxPriceField.getText().isEmpty() ? Integer.parseInt(maxPriceField.getText()) : 64);
         enchantmentOption.setLevel(!levelField.getText().isEmpty() ? Integer.parseInt(levelField.getText()) : enchantment.getMaxLevel());
 
-        if(y < 8) return;
+        if (y < 8) return;
 
         maxPriceField.setVisible(enabled);
         levelField.setVisible(enabled);
-        if(enabled) {
+        if (enabled) {
             context.fill(x, y, x + entryWidth, y + entryHeight, 0x3F00FF00);
-            context.drawTextWithShadow(MinecraftClient.getInstance().textRenderer, Text.of("$:"), x + entryWidth - 21 - 10, y + (entryHeight / 2 / 2), 0xFFFFFF);
-            context.drawTextWithShadow(MinecraftClient.getInstance().textRenderer, Text.of("LVL:"), x + entryWidth - 21 - 15 - 14 - 23, y + (entryHeight / 2 / 2), 0xFFFFFF);
-        }else {
+            context.drawTextWithShadow(MinecraftClient.getInstance().textRenderer, Text.of("$:"), x + entryWidth - 31, y + (entryHeight / 4), 0xFFFFFFFF);
+            context.drawTextWithShadow(MinecraftClient.getInstance().textRenderer, Text.of("LVL:"), x + entryWidth - 73, y + (entryHeight / 4), 0xFFFFFFFF);
+        } else {
             context.fill(x, y, x + entryWidth, y + entryHeight, 0x1AC7C0C0);
         }
-        context.drawTextWithShadow(MinecraftClient.getInstance().textRenderer, enchantment.description(), 8, y + (entryHeight / 2 / 2), 0xFFFFFF);
 
-        matrices.push();
-        matrices.translate(0, 0, 50);
+        Text desc = enchantment.description();
+        if (!desc.getString().isEmpty()) {
+            context.drawTextWithShadow(MinecraftClient.getInstance().textRenderer,
+                    desc,
+                    8, y + (entryHeight / 4),
+                    0xFFFFFFFF);
+        }
+
         maxPriceField.setX(x + entryWidth - 21);
         maxPriceField.setY(y + 1);
         maxPriceField.render(context, mouseX, mouseY, tickDelta);
@@ -82,19 +120,18 @@ public class EnchantmentEntry extends EntryListWidget.Entry<EnchantmentEntry> {
         levelField.setX(x + entryWidth - 21 - 15 - 14);
         levelField.setY(y + 1);
         levelField.render(context, mouseX, mouseY, tickDelta);
-        matrices.pop();
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         int i = 0;
-        if(enabled) {
+        if (enabled) {
             i = 21 + 15 + 14;
         }
-        if(mouseX > this.x && mouseX < this.x + this.entryWidth - i && mouseY > y && mouseY < y + entryHeight) {
+        if (mouseX > this.x && mouseX < this.x + this.entryWidth - i && mouseY > y && mouseY < y + entryHeight) {
             enabled = !enabled;
             return true;
-        } else if(mouseX > this.x + entryWidth - 21 - 10 - 4 && mouseX < this.x + this.entryWidth - 21 && mouseY > y && mouseY < y + entryHeight && enabled) {
+        } else if (mouseX > this.x + entryWidth - 21 - 10 - 4 && mouseX < this.x + this.entryWidth - 21 && mouseY > y && mouseY < y + entryHeight && enabled) {
             enabled = false;
             return true;
         }
@@ -119,54 +156,15 @@ public class EnchantmentEntry extends EntryListWidget.Entry<EnchantmentEntry> {
         // Adjust options by hovering the mouse over the text field and scrolling
         // 'amount' is +1.0 or -1.0, sometimes +2.0 or +3.0 for mouse wheels that (physically) snap to positions.
         // There are also mouse wheels that scroll smoothly; the current implementation maybe doesn't work properly with them
-        if (maxPriceField.isMouseOver(mouseX, mouseY)){
+        if (maxPriceField.isMouseOver(mouseX, mouseY)) {
             enchantmentOption.setMaxPrice(MathHelper.clamp((int) (enchantmentOption.getMaxPrice() + verticalAmount), 5, 64));
             maxPriceField.setText(String.valueOf(enchantmentOption.getMaxPrice()));
             return true;
-        }
-        else if (levelField.isMouseOver(mouseX, mouseY)){
+        } else if (levelField.isMouseOver(mouseX, mouseY)) {
             enchantmentOption.setLevel(MathHelper.clamp((int) (enchantmentOption.getLevel() + verticalAmount), 1, enchantment.getMaxLevel()));
             levelField.setText(String.valueOf(enchantmentOption.getLevel()));
             return true;
         }
         return false;
-    }
-
-    public static void renderMultilineTooltip(DrawContext context, TextRenderer textRenderer, MultilineText text, int centerX, int yAbove, int yBelow, int screenHeight, int z) {
-        MatrixStack matrices = context.getMatrices();
-        if (text.count() > 0) {
-            int maxWidth = text.getMaxWidth();
-            int lineHeight = textRenderer.fontHeight + 1;
-            int height = text.count() * lineHeight - 1;
-
-            int belowY = yBelow + 12;
-            int aboveY = yAbove - height + 12;
-            int maxBelow = screenHeight - (belowY + height);
-            int minAbove = aboveY - height;
-            int y = belowY;
-            if (maxBelow < -8)
-                y = maxBelow > minAbove ? belowY : aboveY;
-
-            int x = Math.max(centerX - text.getMaxWidth() / 2 - 12, -6);
-
-            int drawX = x + 12;
-            int drawY = y - 12;
-
-            matrices.push();
-            TooltipBackgroundRenderer.render(
-                    context,
-                    drawX,
-                    drawY,
-                    maxWidth,
-                    height,
-                    z,
-                    null
-            );
-            matrices.translate(0.0, 0.0, z + 10.0);
-
-            text.drawWithShadow(context, drawX, drawY, lineHeight, -1);
-
-            matrices.pop();
-        }
     }
 }

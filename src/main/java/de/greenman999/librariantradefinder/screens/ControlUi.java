@@ -23,7 +23,7 @@ public class ControlUi extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        super.renderBackground(context, mouseX, mouseY, delta);
+        context.fill(0, 0, this.width, this.height, 0xFF000000);
         context.drawVerticalLine(this.width / 2, 4, this.height - 5, 0xFFC7C0C0);
 
         context.fill(this.width / 2 + 6, 5, this.width - 5, 20, 0xAFC7C0C0);
@@ -41,22 +41,22 @@ public class ControlUi extends Screen {
                     }
                     LibrarianTradeFinder.getConfig().save();
                 })
-                        .dimensions(this.width / 2 + 6, this.height - 25, width / 2 / 2 - 6 - 3, 20)
-                        .color(0x4FC7C0C0)
-                        .id(0)
+                .dimensions(this.width / 2 + 6, this.height - 25, width / 2 / 2 - 6 - 3, 20)
+                .color(0x4FC7C0C0)
+                .id(0)
                 .build());
         this.addDrawableChild(GrayButtonWidget.builder(Text.translatable("tradefinderui.buttons.start").formatted(Formatting.GREEN), (buttonWidget) -> {
-                            if((TradeFinder.villager == null || TradeFinder.lecternPos == null) && client != null) {
-                                client.inGameHud.getChatHud().addMessage(Text.translatable("commands.tradefinder.start.not-selected").styled(style -> style.withColor(TextColor.fromFormatting(Formatting.RED))));
-                                client.setScreen(this.parent);
-                            }else {
-                                TradeFinder.searchList();
-                                if (this.client != null) {
-                                    this.client.setScreen(this.parent);
-                                }
-                                LibrarianTradeFinder.getConfig().save();
-                            }
-                        })
+                    if ((TradeFinder.villager == null || TradeFinder.lecternPos == null) && client != null) {
+                        client.inGameHud.getChatHud().addMessage(Text.translatable("commands.tradefinder.start.not-selected").styled(style -> style.withColor(TextColor.fromFormatting(Formatting.RED))));
+                        client.setScreen(this.parent);
+                    } else {
+                        TradeFinder.searchList();
+                        if (this.client != null) {
+                            this.client.setScreen(this.parent);
+                        }
+                        LibrarianTradeFinder.getConfig().save();
+                    }
+                })
                 .dimensions(this.width / 2 + this.width / 2 / 2 + 3, this.height - 25, width / 2 / 2 - 6, 20)
                 .color(0x4FC7C0C0)
                 .id(1)
@@ -64,6 +64,7 @@ public class ControlUi extends Screen {
 
         enchantmentsListWidget = new EnchantmentsListWidget(this.client, this.width / 2 - 10, this.height - 30, 25, 20);
         this.addDrawableChild(enchantmentsListWidget);
+        this.addDrawableChild(enchantmentsListWidget.resetButton);
 
         this.addDrawableChild(GrayButtonWidget.builder(getButtonText("tradefinderui.options.tp-to-villager", LibrarianTradeFinder.getConfig().tpToVillager), (buttonWidget) -> {
                     LibrarianTradeFinder.getConfig().tpToVillager = !LibrarianTradeFinder.getConfig().tpToVillager;
@@ -80,14 +81,14 @@ public class ControlUi extends Screen {
 
                     updateButtonTexts();
                 })
-                .dimensions(this.width / 2 + 6 , 50, this.width / 2 - 10, 20)
+                .dimensions(this.width / 2 + 6, 50, this.width / 2 - 10, 20)
                 .color(0x4FC7C0C0)
                 .id(3)
                 .tooltip(Tooltip.of(Text.translatable("tradefinderui.options.prevent-axe-break.tooltip")))
                 .build());
         this.addDrawableChild(GrayButtonWidget.builder(getButtonText("tradefinderui.options.legit-mode", LibrarianTradeFinder.getConfig().legitMode), (buttonWidget) -> {
                     LibrarianTradeFinder.getConfig().legitMode = !LibrarianTradeFinder.getConfig().legitMode;
-                    if(!LibrarianTradeFinder.getConfig().legitMode) {
+                    if (!LibrarianTradeFinder.getConfig().legitMode) {
                         LibrarianTradeFinder.getConfig().slowMode = false;
                     }
 
@@ -114,8 +115,8 @@ public class ControlUi extends Screen {
     }
 
     private void updateButtonTexts() {
-        for(Element element : this.children()) {
-            if(!(element instanceof GrayButtonWidget buttonWidget)) continue;
+        for (Element element : this.children()) {
+            if (!(element instanceof GrayButtonWidget buttonWidget)) continue;
             switch (buttonWidget.getId()) {
                 case 2 ->
                         buttonWidget.setMessage(getButtonText("tradefinderui.options.tp-to-villager", LibrarianTradeFinder.getConfig().tpToVillager));
@@ -135,9 +136,9 @@ public class ControlUi extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if(super.keyPressed(keyCode, scanCode, modifiers)) {
+        if (super.keyPressed(keyCode, scanCode, modifiers)) {
             return true;
-        }else {
+        } else {
             return enchantmentsListWidget.keyPressed(keyCode, scanCode, modifiers);
         }
     }
@@ -149,7 +150,7 @@ public class ControlUi extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        for(EnchantmentEntry enchantmentEntry : enchantmentsListWidget.children()) {
+        for (EnchantmentEntry enchantmentEntry : enchantmentsListWidget.children()) {
             boolean maxPriceFieldSuccess = enchantmentEntry.maxPriceField.mouseClicked(mouseX, mouseY, button);
             boolean levelFieldSuccess = enchantmentEntry.levelField.mouseClicked(mouseX, mouseY, button);
             enchantmentEntry.maxPriceField.setFocused(maxPriceFieldSuccess);
@@ -160,7 +161,7 @@ public class ControlUi extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        for(EnchantmentEntry enchantmentEntry : enchantmentsListWidget.children()) {
+        for (EnchantmentEntry enchantmentEntry : enchantmentsListWidget.children()) {
             if (enchantmentEntry.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) return true;
         }
         return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
