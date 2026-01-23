@@ -14,13 +14,11 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.enchantment.Enchantment;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class TradeFinderConfig {
@@ -134,6 +132,20 @@ public class TradeFinderConfig {
                 enchantments.put(enchantment, enchantmentOption);
             }
 
+            for (Enchantment enchantment : enchantmentRegistry) {
+                ResourceKey<Enchantment> key = enchantmentRegistry.getResourceKey(enchantment).orElseThrow();
+
+                if (!enchantmentRegistry.getOrThrow(key).is(tradeableTag)) {
+                    continue;
+                }
+
+                if (!enchantments.containsKey(enchantment)) {
+                    enchantments.put(enchantment, createDefaultOption(enchantment));
+                }
+            }
+
+
+
             sortEnchantmentsMap();
 
             save();
@@ -142,6 +154,18 @@ public class TradeFinderConfig {
             LibrarianTradeFinder.LOGGER.error("Failed to load config file", e);
         }
     }
+
+    private EnchantmentOption createDefaultOption(Enchantment enchantment) {
+        int maxLevel = enchantment.getMaxLevel();
+        int defaultMaxPrice = 64;
+        return new EnchantmentOption(
+                enchantment,
+                false,
+                maxLevel,
+                defaultMaxPrice
+        );
+    }
+
 
     private void sortEnchantmentsMap() {
         enchantments = enchantments.entrySet().stream()
