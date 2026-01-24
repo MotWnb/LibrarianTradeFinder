@@ -64,7 +64,9 @@ public class ClientConnectionMixin {
                         maxBookPrice = TradeFinder.maxBookPrice;
                         minLevel = TradeFinder.minLevel;
                     }
-                    if(tradeOffer.getBaseCostA().getCount() <= maxBookPrice && level >= minLevel) {
+
+                    int actualPrice = tradeOffer.getCostA().getCount();
+                    if(actualPrice <= maxBookPrice && level >= minLevel) {
                         foundEnchantment(found, tradeOffer, enchantment, level);
                     }
                 });
@@ -92,6 +94,4 @@ public class ClientConnectionMixin {
                 ).withStyle(ChatFormatting.GREEN)
         );
     }
-
-
 }
