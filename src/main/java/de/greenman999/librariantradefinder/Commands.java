@@ -11,8 +11,8 @@ import net.minecraft.network.chat.TextColor;
 import net.minecraft.world.item.enchantment.Enchantment;
 
 import static de.greenman999.librariantradefinder.LibrarianTradeFinder.openConfig;
-import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.argument;
-import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
+import static net.fabricmc.fabric.api.client.command.v2.ClientCommands.argument;
+import static net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal;
 
 public class Commands {
     public static void registerCommands(){

@@ -2,7 +2,7 @@ package de.greenman999.librariantradefinder.screens;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.input.KeyEvent;
@@ -21,14 +21,14 @@ public class GrayButtonWidget extends Button {
     }
 
     @Override
-    protected void renderContents(GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
+    protected void extractContents(GuiGraphicsExtractor context, int mouseX, int mouseY, float deltaTicks) {
         this.setFocused(false);
         Matrix3x2fStack matrices = context.pose();
         matrices.pushMatrix();
         matrices.translate(0, 0);
         context.fill(this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(), color);
         int j = this.active ? 16777215 : 10526880;
-        context.drawCenteredString(Minecraft.getInstance().font, this.getMessage(), this.getX() + this.width / 2, this.getY() + (this.height - 7) / 2, j | Mth.ceil(this.alpha * 255.0F) << 24);
+        context.centeredText(Minecraft.getInstance().font, this.getMessage(), this.getX() + this.width / 2, this.getY() + (this.height - 7) / 2, j | Mth.ceil(this.alpha * 255.0F) << 24);
         matrices.popMatrix();
     }
 

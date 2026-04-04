@@ -8,7 +8,7 @@ import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractSelectionList;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -48,28 +48,30 @@ public class EnchantmentEntry extends AbstractSelectionList.Entry<EnchantmentEnt
     }
 
     @Override
-    public void renderContent(GuiGraphics context, int mouseX, int mouseY, boolean hovered, float deltaTicks) {
+    public void extractContent(GuiGraphicsExtractor context, int mouseX, int mouseY, boolean hovered, float deltaTicks) {
         Matrix3x2fStack matrices = context.pose();
-        this.x = super.getX();
-        this.y = super.getY();
-        this.entryWidth = super.getWidth();
-        this.entryHeight = super.getHeight();
+        int x = this.getX();
+        int y = this.getY();
+        this.x = x;
+        this.y = y;
+        this.entryWidth = this.getWidth();
+        this.entryHeight = this.getHeight();
 
         Font textRenderer = Minecraft.getInstance().font;
-        Component enchantmentText = enchantment.description();
+        Component enchantmentText = this.enchantment.description();
 
         if (!maxPriceField.getValue().isEmpty() && !maxPriceField.canConsumeInput() &&
                 (Integer.parseInt(maxPriceField.getValue()) > 64 || Integer.parseInt(maxPriceField.getValue()) < 5)) {
             maxPriceField.setValue("64");
         }
         if (!levelField.getValue().isEmpty() && !levelField.canConsumeInput() &&
-                (Integer.parseInt(levelField.getValue()) > enchantment.getMaxLevel() || Integer.parseInt(levelField.getValue()) < 1)) {
-            levelField.setValue(String.valueOf(enchantment.getMaxLevel()));
+                (Integer.parseInt(levelField.getValue()) > this.enchantment.getMaxLevel() || Integer.parseInt(levelField.getValue()) < 1)) {
+            levelField.setValue(String.valueOf(this.enchantment.getMaxLevel()));
         }
 
         enchantmentOption.setEnabled(enabled);
         enchantmentOption.setMaxPrice(!maxPriceField.getValue().isEmpty() ? Integer.parseInt(maxPriceField.getValue()) : 64);
-        enchantmentOption.setLevel(!levelField.getValue().isEmpty() ? Integer.parseInt(levelField.getValue()) : enchantment.getMaxLevel());
+        enchantmentOption.setLevel(!levelField.getValue().isEmpty() ? Integer.parseInt(levelField.getValue()) : this.enchantment.getMaxLevel());
 
         if (y < 8) return;
 
@@ -82,23 +84,23 @@ public class EnchantmentEntry extends AbstractSelectionList.Entry<EnchantmentEnt
         if (enabled) {
             context.fill(x, y, x + entryWidth, y + entryHeight - 4, 0x3F00FF00);
 
-            context.drawString(textRenderer, Component.nullToEmpty("$:"), maxPriceX - 10, y + 4, 0xFFFFFFFF);
-            context.drawString(textRenderer, Component.nullToEmpty("LVL:"), levelX - 23, y + 4, 0xFFFFFFFF);
+            context.text(textRenderer, Component.nullToEmpty("$:"), maxPriceX - 10, y + 4, 0xFFFFFFFF);
+            context.text(textRenderer, Component.nullToEmpty("LVL:"), levelX - 23, y + 4, 0xFFFFFFFF);
         } else {
             context.fill(x, y, x + entryWidth, y + entryHeight - 4, 0x1AC7C0C0);
         }
 
-        context.drawString(textRenderer, enchantmentText, 8, y + 4, 0xFFFFFFFF);
+        context.text(textRenderer, enchantmentText, 8, y + 4, 0xFFFFFFFF);
 
         matrices.pushMatrix();
         matrices.translate(0, 0);
         maxPriceField.setX(maxPriceX);
         maxPriceField.setY(y + 1);
-        maxPriceField.render(context, mouseX, mouseY, deltaTicks);
+        maxPriceField.extractRenderState(context, mouseX, mouseY, deltaTicks);
 
         levelField.setX(levelX);
         levelField.setY(y + 1);
-        levelField.render(context, mouseX, mouseY, deltaTicks);
+        levelField.extractRenderState(context, mouseX, mouseY, deltaTicks);
         matrices.popMatrix();
 
         if (maxPriceField.canConsumeInput()) {
@@ -132,10 +134,12 @@ public class EnchantmentEntry extends AbstractSelectionList.Entry<EnchantmentEnt
         if(enabled) {
             i = 21 + 15 + 14;
         }
-        if(mouseX > this.x && mouseX < this.x + this.entryWidth - i && mouseY > y && mouseY < y + entryHeight - 4) {
+        if(mouseX > this.x && mouseX < this.x + this.entryWidth - i
+                && mouseY > this.y && mouseY < this.y + entryHeight - 4) {
             enabled = !enabled;
             return true;
-        } else if(mouseX > this.x + entryWidth - 21 - 10 - 4 && mouseX < this.x + this.entryWidth - 21 && mouseY > y && mouseY < y + entryHeight - 4 && enabled) {
+        } else if(mouseX > this.x + entryWidth - 21 - 10 - 4 && mouseX < this.x + this.entryWidth - 21
+                && mouseY > this.y && mouseY < this.y + entryHeight - 4 && enabled) {
             enabled = false;
             return true;
         }

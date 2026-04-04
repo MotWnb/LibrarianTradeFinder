@@ -4,7 +4,7 @@ import de.greenman999.librariantradefinder.LibrarianTradeFinder;
 import de.greenman999.librariantradefinder.TradeFinder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.events.GuiEventListener;
@@ -26,27 +26,26 @@ public class ControlUi extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
-
-        this.renderBackground(context, mouseX, mouseY, delta);
-        context.vLine(this.width / 2, 4, this.height - 5, 0xFFC7C0C0);
+    public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+        this.extractBackground(context, mouseX, mouseY, delta);
+        context.fill(this.width / 2, 4, this.width / 2 + 1, this.height - 5, 0xFFC7C0C0);
 
         context.fill(this.width / 2 + 6, 5, this.width - 5, 20, 0x3FC7C0C0);
-        context.drawString(Minecraft.getInstance().font, Component.translatable("tradefinderui.options.title"), this.width / 2 + 10, 9, 0xFFFFFFFF);
+        context.text(Minecraft.getInstance().font, Component.translatable("tradefinderui.options.title"), this.width / 2 + 10, 9, 0xFFFFFFFF);
         for (Renderable drawable : this.renderables) {
-            drawable.render(context, mouseX, mouseY, delta);
+            drawable.extractRenderState(context, mouseX, mouseY, delta);
         }
     }
 
     @Override
-    public void renderBackground(GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
+    public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float deltaTicks) {
         if (this.minecraft != null && this.minecraft.level == null) {
-            this.renderPanorama(context, deltaTicks);
+            this.extractPanorama(context, deltaTicks);
         } else {
             context.fill(0, 0, this.width, this.height, 0x90202020);
         }
 
-        this.renderMenuBackground(context);
+        this.extractMenuBackground(context);
     }
 
     @Override
@@ -63,7 +62,11 @@ public class ControlUi extends Screen {
                 .build());
         this.addRenderableWidget(GrayButtonWidget.builder(Component.translatable("tradefinderui.buttons.start").withStyle(ChatFormatting.GREEN), (buttonWidget) -> {
                             if((TradeFinder.villager == null || TradeFinder.lecternPos == null) && minecraft != null) {
-                                minecraft.gui.getChat().addMessage(Component.translatable("commands.tradefinder.start.not-selected").withStyle(style -> style.withColor(TextColor.fromLegacyFormat(ChatFormatting.RED))));
+                                minecraft.player.sendSystemMessage(
+                                        Component.translatable("commands.tradefinder.start.not-selected")
+                                                .withStyle(ChatFormatting.RED)
+                                );
+
                                 minecraft.setScreen(this.parent);
                             }else {
                                 TradeFinder.searchList();

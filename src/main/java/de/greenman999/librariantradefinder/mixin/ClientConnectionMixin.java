@@ -82,7 +82,7 @@ public class ClientConnectionMixin {
         TradeFinder.stop();
         found.set(true);
 
-        Minecraft.getInstance().gui.getChat().addMessage(
+        Minecraft.getInstance().player.sendSystemMessage(
                 Component.translatable(
                         "librarian-trade-finder.found",
                         Enchantment.getFullname(Holder.direct(enchantment), level),
@@ -91,6 +91,7 @@ public class ClientConnectionMixin {
                                 .withStyle(style -> style.withColor(0xcc1141))
                 ).withStyle(ChatFormatting.GREEN)
         );
+
     }
 
 

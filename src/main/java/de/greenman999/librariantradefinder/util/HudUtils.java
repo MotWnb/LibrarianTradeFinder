@@ -8,7 +8,7 @@ public class HudUtils {
     // Chat messages
     public static void chatMessage(Component text){
         if (Minecraft.getInstance() == null) return;
-        Minecraft.getInstance().gui.getChat().addMessage(text);
+        Minecraft.getInstance().player.sendSystemMessage(text);
     }
 
 

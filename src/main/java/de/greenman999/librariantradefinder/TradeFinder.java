@@ -2,26 +2,28 @@ package de.greenman999.librariantradefinder;
 
 import de.greenman999.librariantradefinder.config.TradeFinderConfig;
 import de.greenman999.librariantradefinder.util.HudUtils;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.HashedStack;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.game.ServerboundInteractPacket;
-import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
-import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
-import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
-import net.minecraft.network.protocol.game.ServerboundSwingPacket;
+import net.minecraft.network.protocol.game.*;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.npc.villager.VillagerProfession;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -209,12 +211,18 @@ public class TradeFinder {
 
             InteractionResult result = null;
             if (mc.gameMode != null) {
-                result = mc.gameMode.interact(mc.player, villager, InteractionHand.MAIN_HAND);
+                EntityHitResult hitResult = new EntityHitResult(villager);
+                result = mc.gameMode.interact(mc.player, villager, hitResult, InteractionHand.MAIN_HAND);
+
                 mc.player.swing(InteractionHand.MAIN_HAND, true);
-                mc.player.connection
-                        .send(new ServerboundSwingPacket(InteractionHand.MAIN_HAND));
-                mc.player.connection
-                        .send(ServerboundInteractPacket.createInteractionPacket(villager, false, InteractionHand.MAIN_HAND));
+                mc.player.connection.send(new ServerboundSwingPacket(InteractionHand.MAIN_HAND));
+
+                mc.player.connection.send(new ServerboundInteractPacket(
+                        villager.getId(),
+                        InteractionHand.MAIN_HAND,
+                        villager.getEyePosition(),
+                        false
+                ));
             }
             if(result == InteractionResult.SUCCESS) {
                 finishedBreakLook = false;
@@ -303,11 +311,44 @@ public class TradeFinder {
                     for (int i = 9; i < 45; i++) {
                         if (mc.player.getInventory().getItem(i >= 36 ? i - 36 : i).getItem() == Items.LECTERN) {
                             boolean itemInOffhand = !mc.player.getOffhandItem().isEmpty();
-                            mc.gameMode.handleInventoryMouseClick(mc.player.containerMenu.containerId, i, 0, ClickType.PICKUP, mc.player);
-                            mc.gameMode.handleInventoryMouseClick(mc.player.containerMenu.containerId, 45, 0, ClickType.PICKUP, mc.player);
+                            var container = mc.player.containerMenu;
 
-                            if (itemInOffhand)
-                                mc.gameMode.handleInventoryMouseClick(mc.player.containerMenu.containerId, i, 0, ClickType.PICKUP, mc.player);
+                            ContainerInput pickupInput = ContainerInput.PICKUP;
+                            Int2ObjectMap<HashedStack> emptyChangedSlots = new Int2ObjectOpenHashMap<>();
+                            HashedStack emptyCarried = HashedStack.EMPTY;
+                            int stateId = container.getStateId();
+
+                            mc.player.connection.send(new ServerboundContainerClickPacket(
+                                    container.containerId,
+                                    stateId,
+                                    (short) i,
+                                    (byte) 0,
+                                    pickupInput,
+                                    emptyChangedSlots,
+                                    emptyCarried
+                            ));
+
+                            mc.player.connection.send(new ServerboundContainerClickPacket(
+                                    container.containerId,
+                                    stateId,
+                                    (short) 45,
+                                    (byte) 0,
+                                    pickupInput,
+                                    emptyChangedSlots,
+                                    emptyCarried
+                            ));
+
+                            if (itemInOffhand) {
+                                mc.player.connection.send(new ServerboundContainerClickPacket(
+                                        container.containerId,
+                                        stateId,
+                                        (short) i,
+                                        (byte) 0,
+                                        pickupInput,
+                                        emptyChangedSlots,
+                                        emptyCarried
+                                ));
+                            }
 
                             break;
                         }

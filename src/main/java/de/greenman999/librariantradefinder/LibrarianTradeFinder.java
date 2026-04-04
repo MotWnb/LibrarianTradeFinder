@@ -6,9 +6,9 @@ import de.greenman999.librariantradefinder.util.HudUtils;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
@@ -40,22 +40,21 @@ public class LibrarianTradeFinder implements ClientModInitializer {
 
     private static boolean scheduleOpenConfig = false;
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void onInitializeClient() {
-		selectKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyMapping(
+		selectKeyBinding = KeyMappingHelper.registerKeyMapping(new KeyMapping(
 				"key.librarian-trade-finder.select",
 				GLFW.GLFW_KEY_I,
 				CATEGORY
 		));
 
-		toggleKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyMapping(
+		toggleKeyBinding = KeyMappingHelper.registerKeyMapping(new KeyMapping(
 				"key.librarian-trade-finder.toggle",
 				GLFW.GLFW_KEY_O,
 				CATEGORY
 		));
 
-		configKeyBinding = KeyBindingHelper.registerKeyBinding(new KeyMapping(
+		configKeyBinding = KeyMappingHelper.registerKeyMapping(new KeyMapping(
 				"key.librarian-trade-finder.config",
 				GLFW.GLFW_KEY_C,
 				CATEGORY
@@ -81,7 +80,11 @@ public class LibrarianTradeFinder implements ClientModInitializer {
 					TradeFinder.searchList();
 				} else {
 					TradeFinder.stop();
-					player.displayClientMessage(Component.translatable("commands.tradefinder.stop.success").withStyle(ChatFormatting.GREEN), false);
+					player.sendSystemMessage(
+							Component.translatable("commands.tradefinder.stop.success")
+									.withStyle(ChatFormatting.GREEN)
+					);
+
 				}
 			}
 
@@ -92,8 +95,10 @@ public class LibrarianTradeFinder implements ClientModInitializer {
 			}
 		});
 
-		// TODO: Deprecated, move to mixin
-		HudRenderCallback.EVENT.register((a, b) -> RotationTools.render());
+		HudElementRegistry.addLast(
+				Identifier.fromNamespaceAndPath("librarian-trade-finder", "rotation_hud"),
+				(guiGraphics, deltaTracker) -> RotationTools.render()
+		);
 
 		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> getConfig().load());
 		ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, manager, success) -> {
@@ -127,17 +132,14 @@ public class LibrarianTradeFinder implements ClientModInitializer {
             return InteractionResult.PASS;
         });
 
-        LOGGER.info("Librarian Trade Finder initialized.");
+		LOGGER.info("Librarian Trade Finder initialized.");
 	}
 
-
-
-    public static TradeFinderConfig getConfig() {
+	public static TradeFinderConfig getConfig() {
 		return TradeFinderConfig.INSTANCE;
 	}
 
-    public static void openConfig(){
-        scheduleOpenConfig = true;
-    }
-
+	public static void openConfig(){
+		scheduleOpenConfig = true;
+	}
 }

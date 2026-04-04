@@ -3,7 +3,7 @@ package de.greenman999.librariantradefinder.screens;
 import com.mojang.blaze3d.platform.InputConstants;
 import de.greenman999.librariantradefinder.LibrarianTradeFinder;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractSelectionList;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -42,28 +42,14 @@ public class EnchantmentsListWidget extends AbstractSelectionList<EnchantmentEnt
     }
 
     @Override
-    public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
+    protected void extractListBackground(GuiGraphicsExtractor context) {
         this.setSelected(null);
-        Matrix3x2fStack matrices = context.pose();
-        matrices.pushMatrix();
-        matrices.translate(0.0F, 0.0F);
-
         context.fill(5, 5, this.width + 5, 20, 0xAFC7C0C0);
-        context.drawString(Minecraft.getInstance().font, Component.translatable("tradefinderui.enchantments.title"), 9, 9, 0xFFFFFFFF);
-
-        matrices.popMatrix();
-
-        super.renderWidget(context, mouseX, mouseY, delta);
+        context.text(Minecraft.getInstance().font, Component.translatable("tradefinderui.enchantments.title"), 9, 9, 0xFFFFFFFF);
     }
 
     @Override
-    protected void renderListBackground(GuiGraphics context) {
-
-    }
-
-    @Override
-    protected void renderListSeparators(GuiGraphics context) {
-
+    protected void extractListSeparators(GuiGraphicsExtractor context) {
     }
 
     @Override
