@@ -23,7 +23,6 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.npc.villager.VillagerProfession;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -71,7 +70,7 @@ public class TradeFinder {
         minLevel = 0;
         tries = 0;
 
-        Minecraft.getInstance().gui.setOverlayMessage(Component.literal(""), false);
+        Minecraft.getInstance().gui.hud.setOverlayMessage(Component.literal(""), false);
     }
 
     public static int searchList() {
@@ -138,8 +137,8 @@ public class TradeFinder {
         assert Minecraft.getInstance().level != null;
         for(Entity entity : Minecraft.getInstance().level.entitiesForRendering()) {
             Vec3 entityPos = entity.position();
-            if (blockPos != null && entity instanceof Villager && ((Villager) entity).getVillagerData().profession().is(VillagerProfession.LIBRARIAN) && entityPos.distanceTo(blockPos.getCenter()) < closestDistance) {
-                closestDistance = entityPos.distanceTo(blockPos.getCenter());
+            if (blockPos != null && entity instanceof Villager && ((Villager) entity).getVillagerData().profession().is(VillagerProfession.LIBRARIAN) && entityPos.distanceTo(Vec3.atCenterOf(blockPos)) < closestDistance) {
+                closestDistance = entityPos.distanceTo(Vec3.atCenterOf(blockPos));
                 closestEntity = entity;
             }
         }
